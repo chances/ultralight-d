@@ -35,5 +35,16 @@
   ],
   "lflags-windows-x86_64": [
     "/LIBPATH:subprojects\\ultralight\\SDK\\lib"
+  ],
+  "configurations": [
+    { "name": "default" },
+    {
+      "name": "unittest",
+      "postBuildCommands-linux": [
+        "which patchelf",
+        "patchelf --set-rpath '$$ORIGIN/.;$$ORIGIN/ultralight' bin/ultralight-test-unittest"
+      ],
+      "postBuildCommands-osx": ["install_name_tool -add_rpath @executable_path/ultralight bin/ultralight-test-unittest"]
+    }
   ]
 }
