@@ -201,11 +201,15 @@ class Renderer {
   ///
   ULRenderer ptr;
 
-  package this() {
+  /// Create a new renderer given Ultralight's default configuration.
+  this() {
+    this(config);
+  }
+  /// Create a new renderer.
+  this(Config config) {
     assert(config.ptr);
     ptr = ulCreateRenderer(config.ptr);
   }
-
   ~this() {
     ulDestroyRenderer(ptr);
   }
