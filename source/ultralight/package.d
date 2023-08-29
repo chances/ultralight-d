@@ -250,6 +250,7 @@ class Platform {
 /// See_Also: `Renderer.defaultSession`
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___session_8h.html
 class Session {
+  ///
   ULSession ptr;
 
   package this(ULSession ptr) {
