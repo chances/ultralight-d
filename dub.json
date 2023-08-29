@@ -44,7 +44,13 @@
         "which patchelf",
         "patchelf --set-rpath '$$ORIGIN/ultralight/.' bin/ultralight-test-unittest"
       ],
-      "postBuildCommands-osx": ["install_name_tool -add_rpath @executable_path/ultralight bin/ultralight-test-unittest"]
+      "postBuildCommands-osx": [
+        "install_name_tool -add_rpath @executable_path/ultralight bin/ultralight-test-unittest",
+        "xattr -rd com.apple.quarantine bin/ultralight/libAppCore.dylib",
+        "xattr -rd com.apple.quarantine bin/ultralight/libUltralight.dylib",
+        "xattr -rd com.apple.quarantine bin/ultralight/libUltralightCore.dylib",
+        "xattr -rd com.apple.quarantine bin/ultralight/libWebCore.dylib"
+      ]
     }
   ]
 }
