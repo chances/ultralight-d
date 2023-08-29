@@ -1,0 +1,24 @@
+# Binaries
+bin/
+
+# Node
+node_modules/
+package-lock.json
+
+# Dub
+.dub
+docs.json
+__dummy.html
+docs/
+/ultralight
+ultralight.so
+ultralight.dylib
+ultralight.dll
+ultralight.a
+ultralight.lib
+ultralight-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
