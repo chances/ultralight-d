@@ -10,5 +10,30 @@
   "targetPath": "bin",
   "targetType": "staticLibrary",
   "preBuildCommands": ["make ultralight"],
-  "dflags": ["-P-Isubprojects/ultralight/SDK/include"]
+  "dflags": ["-P-Isubprojects/ultralight/SDK/include"],
+  "copyFiles": ["bin/ultralight"],
+  "libs": [
+    "Ultralight",
+    "UltralightCore",
+    "WebCore",
+    "AppCore"
+  ],
+  "libs-linux": [],
+  "lflags": [
+    "-L$ULTRALIGHT_PACKAGE_DIR/bin/ultralight"
+  ],
+  "lflags-linux": [
+    "-lstdc++"
+  ],
+  "lflags-osx": [
+    "-lc++",
+    "-framework", "OpenGL",
+    "-framework", "Cocoa",
+    "-framework", "IOKit",
+    "-framework", "CoreFoundation",
+    "-framework", "CoreVideo"
+  ],
+  "lflags-windows-x86_64": [
+    "/LIBPATH:subprojects\\ultralight\\SDK\\lib"
+  ]
 }

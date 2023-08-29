@@ -2,7 +2,7 @@
 module ultralight;
 
 import std.conv: to;
-import std.string: fromStringz;
+import std.string: fromStringz, toStringz;
 
 import ultralight.bindings;
 
@@ -51,8 +51,6 @@ static this() {
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___string_8h.html
 class String {
-  import std.string: toStringz;
-
   ///
   ULString ptr;
 
@@ -119,6 +117,17 @@ class String {
   }
 }
 
+/// Convert a `string` to an Ultralight `String`.
+String toUlString(string str) {
+  return new String(str);
+}
+
+/// Convert an unmanaged Ultralight string directly to a managed `string`.
+/// Remarks: This makes a copy of the unmanaged string.
+string toString(ULString str) {
+  return ulStringGetData(str)[0 .. ulStringGetLength(str)].to!string.idup;
+}
+
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___config_8h.html
 struct Config {
   ///
@@ -148,57 +157,129 @@ class Renderer {
     ulDestroyRenderer(ptr);
   }
 
-  // TODO: Bind to the following methods.
+  /// Create a Session to store local data in (such as cookies, local storage, application cache, indexed db, etc).
+  Session createSession(bool isPersistent, string name) {
+    return this.createSession(isPersistent, name.toUlString);
+  }
+  /// ditto
+  Session createSession(bool isPersistent, String name) {
+    return new Session(ulCreateSession(ptr, isPersistent, name.ptr));
+  }
+
+  /// Get the default session (persistent session named "default").
+  static Session defaultSession() {
+    assert(renderer && renderer.ptr);
+    return new Session(ulDefaultSession(renderer.ptr));
+  }
 
   /// Update timers and dispatch internal callbacks (JavaScript and network).
-  void ulUpdate(ULRenderer renderer);
+  void update() {
+    ulUpdate(ptr);
+  }
 
   /// Render all active Views.
-  void ulRender(ULRenderer renderer);
+  void render() {
+    ulRender(ptr);
+  }
 
   /// Attempt to release as much memory as possible.
-  void ulPurgeMemory(ULRenderer renderer);
+  void purgeMemory() {
+    ulPurgeMemory(ptr);
+  }
 
   /// Print detailed memory usage statistics to the log.
-  void ulLogMemoryUsage(ULRenderer renderer);
+  void logMemoryUsage() {
+    ulLogMemoryUsage(ptr);
+  }
 
   /// Start the remote inspector server.
-  bool ulStartRemoteInspectorServer(ULRenderer renderer, const char* address, ushort port);
+  bool startRemoteInspectorServer(string address, ushort port) {
+    return ulStartRemoteInspectorServer(ptr, address.toStringz, port);
+  }
 
   /// Describe the details of a gamepad, to be used with `ulFireGamepadEvent` and related events below.
-  void ulSetGamepadDetails(ULRenderer renderer, uint index, ULString id, uint axis_count, uint button_count);
+  void setGamepadDetails(uint index, string id, uint axis_count, uint button_count) {
+    ulSetGamepadDetails(ptr, index, cast(C_String*) id.toStringz, axis_count, button_count);
+  }
 
   /// Fire a gamepad event (connection / disconnection).
-  void ulFireGamepadEvent(ULRenderer renderer, ULGamepadEvent evt);
+  void fireGamepadEvent(ULGamepadEvent evt) {
+    ulFireGamepadEvent(ptr, evt);
+  }
 
   /// Fire a gamepad axis event (to be called when an axis value is changed).
-  void ulFireGamepadAxisEvent(ULRenderer renderer, ULGamepadAxisEvent evt);
+  void fireGamepadAxisEvent(ULGamepadAxisEvent evt) {
+    ulFireGamepadAxisEvent(ptr, evt);
+  }
 
   /// Fire a gamepad button event (to be called when a button value is changed).
-  void ulFireGamepadButtonEvent(ULRenderer renderer, ULGamepadButtonEvent evt);
+  void fireGamepadButtonEvent(ULGamepadButtonEvent evt) {
+    ulFireGamepadButtonEvent(ptr, evt);
+  }
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___platform_8h.html
 class Platform {
-  // TODO: Bind to the following methods.
-
   /// Set a custom Logger implementation.
-  void ulPlatformSetLogger(ULLogger logger);
+  static void setLogger(ULLogger logger) {
+    ulPlatformSetLogger(logger);
+  }
 
   /// Set a custom FileSystem implementation.
-  void ulPlatformSetFileSystem(ULFileSystem file_system);
-
-  /// Set a custom FontLoader implementation.
-  void ulPlatformSetFontLoader(ULFontLoader font_loader);
+  static void setFileSystem(ULFileSystem file_system) {
+    ulPlatformSetFileSystem(file_system);
+  }
 
   /// Set a custom Surface implementation.
-  void ulPlatformSetSurfaceDefinition(ULSurfaceDefinition surface_definition);
+  static void setSurfaceDefinition(ULSurfaceDefinition surface_definition) {
+    ulPlatformSetSurfaceDefinition(surface_definition);
+  }
 
   /// Set a custom GPUDriver implementation.
-  void ulPlatformSetGPUDriver(ULGPUDriver gpu_driver);
+  static void setGPUDriver(ULGPUDriver gpu_driver) {
+    ulPlatformSetGPUDriver(gpu_driver);
+  }
 
   /// Set a custom Clipboard implementation.
-  void ulPlatformSetClipboard(ULClipboard clipboard);
+  static void setClipboard(ULClipboard clipboard) {
+    ulPlatformSetClipboard(clipboard);
+  }
+}
+
+/// See_Also: `Renderer.createSession`
+/// See_Also: `Renderer.defaultSession`
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___session_8h.html
+class Session {
+  ULSession ptr;
+
+  package this(ULSession ptr) {
+    assert(ptr);
+    this.ptr = ptr;
+  }
+  /// Destroy a Session.
+  ~this() {
+    ulDestroySession(ptr);
+  }
+
+  /// Whether or not is persistent (backed to disk).
+  bool isPersistent() {
+    return ulSessionIsPersistent(ptr);
+  }
+
+  /// Unique name identifying the session (used for unique disk path).
+  string name() {
+    return ulSessionGetName(ptr).toString;
+  }
+
+  /// Unique numeric ID for the session.
+  ulong getId() {
+    return ulSessionGetId(ptr);
+  }
+
+  /// The disk path to write to (used by persistent sessions only).
+  string getDiskPath() {
+    return ulSessionGetDiskPath(ptr).toString;
+  }
 }
 
 /// View is a web-page container rendered to an offscreen surface that you display yourself.
@@ -297,54 +378,43 @@ class Bitmap {
     return ulBitmapOwnsPixels(cast(C_Bitmap*) ptr);
   }
 
-  // TODO: Bind to the following methods.
-
-  /// Lock pixels for reading/writing, returns pointer to pixel buffer.
-  void* ulBitmapLockPixels(ULBitmap bitmap);
+  /// Lock pixels for reading/writing.
+  /// Returns: Slice of pixel buffer.
+  ubyte[] lockPixels() {
+    return cast(ubyte[]) ulBitmapLockPixels(ptr)[0 .. this.size];
+  }
 
   /// Unlock pixels after locking.
-  void ulBitmapUnlockPixels(ULBitmap bitmap);
+  void unlockPixels() {
+    ulBitmapUnlockPixels(ptr);
+  }
 
-  /// Get raw pixel buffer– you should only call this if Bitmap is already locked.
-  void* ulBitmapRawPixels(ULBitmap bitmap);
+  /// Get raw pixel buffer.
+  ///
+  /// You should only call this if Bitmap is already locked.
+  ubyte[] rawPixels() {
+    return cast(ubyte[]) ulBitmapRawPixels(ptr)[0 .. this.size];
+  }
 
   /// Whether or not this bitmap is empty.
-  bool ulBitmapIsEmpty(ULBitmap bitmap);
+  bool isEmpty() {
+    return ulBitmapIsEmpty(ptr);
+  }
 
   /// Reset bitmap pixels to 0.
-  void ulBitmapErase(ULBitmap bitmap);
+  void erase() {
+    ulBitmapErase(ptr);
+  }
 
   /// Write bitmap to a PNG on disk.
-  bool ulBitmapWritePNG(ULBitmap bitmap, const char* path);
+  bool writePng(string path) {
+    return ulBitmapWritePNG(ptr, path.toStringz);
+  }
 
-  /// This converts a BGRA bitmap to RGBA bitmap and vice-versa by swapping the red and blue channels.
-  void ulBitmapSwapRedBlueChannels(ULBitmap bitmap);
-}
-
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___session_8h.html
-class Session {
-  // TODO: Bind to the following methods.
-
-  /// Create a Session to store local data in (such as cookies, local storage, application cache, indexed db, etc).
-  ULSession ulCreateSession(ULRenderer renderer, bool is_persistent, ULString name);
-
-  /// Destroy a Session.
-  void ulDestroySession(ULSession session);
-
-  /// Get the default session (persistent session named "default").
-  ULSession ulDefaultSession(ULRenderer renderer);
-
-  /// Whether or not is persistent (backed to disk).
-  bool ulSessionIsPersistent(ULSession session);
-
-  /// Unique name identifying the session (used for unique disk path).
-  ULString ulSessionGetName(ULSession session);
-
-  /// Unique numeric Id for the session.
-  ulong ulSessionGetId(ULSession session);
-
-  /// The disk path to write to (used by persistent sessions only).
-  ULString ulSessionGetDiskPath(ULSession session);
+  /// Converts a BGRA bitmap to RGBA bitmap and vice-versa by swapping the red and blue channels.
+  void swapRedBlueChannels() {
+    ulBitmapSwapRedBlueChannels(ptr);
+  }
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___mouse_event_8h.html
