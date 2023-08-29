@@ -1,0 +1,11 @@
+{
+  "extension" : {
+    "identifier" : "llc.snow.lldb",
+    "name" : "LLDB"
+  },
+  "extensionTemplate" : "lldb",
+  "extensionValues" : {
+    "launchPath" : "bin\/ultralight-test-unittest"
+  },
+  "openLogOnRun" : "fail"
+}

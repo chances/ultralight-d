@@ -5,48 +5,14 @@ import std.conv: to;
 import std.string: fromStringz, toStringz;
 
 import ultralight.bindings;
+public import ultralight.enums;
 
-/// Get the version string of the library in MAJOR.MINOR.PATCH format.
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
-string version_() {
-  return ulVersionString().fromStringz.to!string;
-}
-
-/// Get the numeric major version of the library.
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
-uint versionMajor() {
-  return ulVersionMajor();
-}
-
-/// Get the numeric minor version of the library.
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
-uint versionMinor() {
-  return ulVersionMinor();
-}
-
-/// Get the numeric patch version of the library.
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
-uint versionPatch() {
-  return ulVersionPatch();
-}
-
-/// Get the full WebKit version string.
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
-string webKitVersion() {
-  return ulWebKitVersionString().fromStringz.to!string;
-}
-
-///
-Config config;
-///
-Renderer renderer;
-/// Global platform singleton, manages user-defined platform handlers.
-Platform platform;
+/// Global configuration singleton, manages user-defined configuration.
+static Config config;
 
 /// Create the `Renderer` singleton.
 static this() {
-  renderer = new Renderer();
-  platform = new Platform();
+  config = Config(ulCreateConfig());
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___string_8h.html
@@ -133,14 +99,100 @@ struct Config {
   ///
   ULConfig ptr;
 
-  package this(ULConfig ptr) {
-    this.ptr = ptr is null ? ulCreateConfig() : ptr;
-  }
-
   ~this() {
     assert(ptr);
     ulDestroyConfig(ptr);
     ptr = null;
+  }
+
+  /// A writable OS file path to store persistent Session data in.
+  static void setCachePath(string cachePath) {
+    ulConfigSetCachePath(config.ptr, cachePath.toUlString.ptr);
+  }
+
+  /// The relative path to the resources folder (loaded via the FileSystem API).
+  static void setResourcePathPrefix(string resourcePathPrefix) {
+    ulConfigSetResourcePathPrefix(config.ptr, resourcePathPrefix.toUlString.ptr);
+  }
+
+  /// The winding order for front-facing triangles.
+  static void setFaceWinding(FaceWinding winding) {
+    ulConfigSetFaceWinding(config.ptr, winding);
+  }
+
+  /// The hinting algorithm to use when rendering fonts.
+  static void setFontHinting(FontHinting fontHinting) {
+    ulConfigSetFontHinting(config.ptr, fontHinting);
+  }
+
+  /// The gamma to use when compositing font glyphs, change this value to adjust contrast (Adobe and Apple prefer 1.8, others may prefer 2.2).
+  static void setFontGamma(double fontGamma) {
+    ulConfigSetFontGamma(config.ptr, fontGamma);
+  }
+
+  /// Global user-defined CSS string (included before any CSS on the page).
+  static void setUserStylesheet(string cssString) {
+    ulConfigSetUserStylesheet(config.ptr, cssString.toUlString.ptr);
+  }
+
+  /// Whether or not to continuously repaint any Views, regardless if they are dirty.
+  static void setForceRepaint(bool enabled) {
+    ulConfigSetForceRepaint(config.ptr, enabled);
+  }
+
+  /// The delay (in seconds) between every tick of a CSS animation.
+  static void setAnimationTimerDelay(double delay) {
+    ulConfigSetAnimationTimerDelay(config.ptr, delay);
+  }
+
+  /// The delay (in seconds) between every tick of a smooth scroll animation.
+  static void setScrollTimerDelay(double delay) {
+    ulConfigSetScrollTimerDelay(config.ptr, delay);
+  }
+
+  /// The delay (in seconds) between every call to the recycler.
+  static void setRecycleDelay(double delay) {
+    ulConfigSetRecycleDelay(config.ptr, delay);
+  }
+
+  /// The size of WebCore's memory cache in bytes.
+  static void setMemoryCacheSize(uint size) {
+    ulConfigSetMemoryCacheSize(config.ptr, size);
+  }
+
+  /// The number of pages to keep in the cache.
+  static void setPageCacheSize(uint size) {
+    ulConfigSetPageCacheSize(config.ptr, size);
+  }
+
+  /// The system's physical RAM size in bytes.
+  static void setOverrideRAMSize(uint size) {
+    ulConfigSetOverrideRAMSize(config.ptr, size);
+  }
+
+  /// The minimum size of large VM heaps in JavaScriptCore.
+  static void setMinLargeHeapSize(uint size) {
+    ulConfigSetMinLargeHeapSize(config.ptr, size);
+  }
+
+  /// The minimum size of small VM heaps in JavaScriptCore.
+  static void setMinSmallHeapSize(uint size) {
+    ulConfigSetMinSmallHeapSize(config.ptr, size);
+  }
+
+  /// The number of threads to use in the Renderer (for parallel painting on the CPU, etc.).
+  static void setNumRendererThreads(uint numRendererThreads) {
+    ulConfigSetNumRendererThreads(config.ptr, numRendererThreads);
+  }
+
+  /// The max amount of time (in seconds) to allow repeating timers to run during each call to `Renderer.update`.
+  static void setMaxUpdateTime(double maxUpdateTime) {
+    ulConfigSetMaxUpdateTime(config.ptr, maxUpdateTime);
+  }
+
+  /// The alignment (in bytes) of the BitmapSurface when using the CPU renderer.
+  static void setBitmapAlignment(uint bitmapAlignment) {
+    ulConfigSetBitmapAlignment(config.ptr, bitmapAlignment);
   }
 }
 
@@ -150,6 +202,7 @@ class Renderer {
   ULRenderer ptr;
 
   package this() {
+    assert(config.ptr);
     ptr = ulCreateRenderer(config.ptr);
   }
 
@@ -167,9 +220,8 @@ class Renderer {
   }
 
   /// Get the default session (persistent session named "default").
-  static Session defaultSession() {
-    assert(renderer && renderer.ptr);
-    return new Session(ulDefaultSession(renderer.ptr));
+  Session defaultSession() {
+    return new Session(ulDefaultSession(ptr));
   }
 
   /// Update timers and dispatch internal callbacks (JavaScript and network).
@@ -218,8 +270,19 @@ class Renderer {
   }
 }
 
+/// Global platform singleton, manages user-defined platform handlers.
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___platform_8h.html
 class Platform {
+  ///
+  static void enablePlatformFontLoader() {
+    ulEnablePlatformFontLoader();
+  }
+
+  ///
+  static void enablePlatformFileSystem(string baseDir) {
+    ulEnablePlatformFileSystem(baseDir.toUlString.ptr);
+  }
+
   /// Set a custom Logger implementation.
   static void setLogger(ULLogger logger) {
     ulPlatformSetLogger(logger);
@@ -295,12 +358,6 @@ class View {
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___surface_8h.html
 class Surface {
-}
-
-/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html#af81b997faeeb522a0cb41000e0c3f89d
-enum BitmapFormat {
-  a8_unorm = kBitmapFormat_A8_UNORM,
-  bgra8_unorm_srgb = kBitmapFormat_BGRA8_UNORM_SRGB
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___bitmap_8h.html
@@ -480,4 +537,34 @@ class GamepadEvent {
     ulDestroyGamepadEvent(ptr);
     ptr = null;
   }
+}
+
+/// Get the version string of the library in MAJOR.MINOR.PATCH format.
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
+string version_() {
+  return ulVersionString().fromStringz.to!string;
+}
+
+/// Get the numeric major version of the library.
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
+uint versionMajor() {
+  return ulVersionMajor();
+}
+
+/// Get the numeric minor version of the library.
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
+uint versionMinor() {
+  return ulVersionMinor();
+}
+
+/// Get the numeric patch version of the library.
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
+uint versionPatch() {
+  return ulVersionPatch();
+}
+
+/// Get the full WebKit version string.
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html
+string webKitVersion() {
+  return ulWebKitVersionString().fromStringz.to!string;
 }
