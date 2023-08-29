@@ -2,3 +2,6 @@ SDK/include/
 SDK/inspector/
 SDK/resources/
 SDK/samples/
+SDK/CMakeLists.txt
+SDK/LOG.txt
+SDK/README.md
