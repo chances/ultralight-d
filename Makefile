@@ -9,12 +9,13 @@ all: ultralight
 package-lock.json: package.json
 	@npm i
 subprojects/ultralight/SDK/include/Ultralight/CAPI.h: package-lock.json subprojects/ultralight/download.mjs
-	@node subprojects/ultralight/download.mjs
+# Download Ultralight SDK only if it isn't already downloaded
+	@[ -f $@ ] || node subprojects/ultralight/download.mjs
 
 ultralight: subprojects/ultralight/SDK/include/Ultralight/CAPI.h
 	@mkdir -p bin/ultralight
 	@echo "Copying ultralight distributables"
-	cp -r subprojects/ultralight/SDK/bin/* bin/ultralight/.
+	@cp -r subprojects/ultralight/SDK/bin/* bin/ultralight/.
 .PHONY: ultralight
 
 subprojects: ultralight
