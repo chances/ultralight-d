@@ -7,6 +7,8 @@ import ultralight;
 static bool done = false;
 
 void main() {
+  import std.functional: toDelegate;
+
   // We must provide our own Platform API handlers since we're not using ulCreateApp().
   //
   // `FileSystem` and `FontLoader` Platform API handlers are required.
@@ -34,8 +36,18 @@ void main() {
   auto view = renderer.createView(800, 600, viewConfig, null);
   object.destroy(viewConfig);
 
-  // Register onFinishLoading() callback with the view.
-  view.setFinishLoadingCallback(&onFinishLoading, null);
+  // Register loading finished callback with the view.
+  view.setFinishLoadingCallback(((void* userData, View caller, ulong frameId, bool isMainFrame, string url) {
+    assert(caller !is null);
+    assert(frameId);
+    assert(url);
+
+    // Page is done when the main frame is finished loading.
+    if (!isMainFrame) return;
+
+    writeln("Page has loaded!");
+    done = true;
+  }).toDelegate, null);
 
   // Load a local HTML file into the View (uses the file system defined above).
   view.loadUrl("file:///page.html");
@@ -58,17 +70,4 @@ void main() {
   bitmap.writePng("result.png");
 
   writeln("Saved a render of page to result.png");
-}
-
-///
-extern(C) void onFinishLoading(void* userData, View caller, ulong frameId, bool isMainFrame, String url) {
-  assert(caller !is null);
-  assert(frameId);
-  assert(url);
-
-  // Page is done when the main frame is finished loading.
-  if (!isMainFrame) return;
-
-  writeln("Page has loaded!");
-  done = true;
 }

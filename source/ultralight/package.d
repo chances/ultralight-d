@@ -2,9 +2,12 @@
 module ultralight;
 
 import std.conv: to;
+import std.functional: toDelegate;
 import std.string: fromStringz, toStringz;
+import std.typecons: Flag, No, Yes;
 
 import ultralight.bindings;
+public import ultralight.callbacks;
 public import ultralight.enums;
 
 /// Global configuration singleton, manages user-defined configuration.
@@ -459,14 +462,16 @@ class ViewConfig {
 class View {
   ///
   ULView ptr;
+  /// Whether this view is managed.
+  bool owned;
 
-  package this(ULView view) {
+  package this(ULView view, Flag!"owned" owned = Yes.owned) {
     this.ptr = view;
+    this.owned = owned;
   }
-
   ~this() {
     assert(ptr);
-    ulDestroyView(ptr);
+    if (owned) ulDestroyView(ptr);
     ptr = null;
   }
 
@@ -648,68 +653,94 @@ class View {
   }
 
   /// Set callback for when the page title changes.
-  void setChangeTitleCallback(ULChangeTitleCallback callback, void* userData) {
-    ulViewSetChangeTitleCallback(ptr, callback, userData);
+  void setChangeTitleCallback(ChangeTitleCallback callback, void* userData) {
+    ulViewSetChangeTitleCallback(ptr, ((void* user_data, ULView caller, ULString title) {
+      callback(user_data, new View(caller, No.owned), title.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the page URL changes.
-  void setChangeURLCallback(ULChangeURLCallback callback, void* userData) {
-    ulViewSetChangeURLCallback(ptr, callback, userData);
+  void setChangeUrlCallback(ChangeURLCallback callback, void* userData) {
+    ulViewSetChangeURLCallback(ptr, ((void* user_data, ULView caller, ULString url) {
+      callback(user_data, new View(caller, No.owned), url.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the tooltip changes (usually result of a mouse hover).
-  void setChangeTooltipCallback(ULChangeTooltipCallback callback, void* userData) {
-    ulViewSetChangeTooltipCallback(ptr, callback, userData);
+  void setChangeTooltipCallback(ChangeTooltipCallback callback, void* userData) {
+    ulViewSetChangeTooltipCallback(ptr, ((void* user_data, ULView caller, ULString tooltip) {
+      callback(user_data, new View(caller, No.owned), tooltip.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the mouse cursor changes.
-  void setChangeCursorCallback(ULChangeCursorCallback callback, void* userData) {
-    ulViewSetChangeCursorCallback(ptr, callback, userData);
+  void setChangeCursorCallback(ChangeCursorCallback callback, void* userData) {
+    ulViewSetChangeCursorCallback(ptr, cast(ULChangeCursorCallback) ((void* user_data, ULView caller, Cursor cursor) {
+      callback(user_data, new View(caller, No.owned), cursor);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when a message is added to the console (useful for JavaScript / network errors and debugging).
-  void setAddConsoleMessageCallback(ULAddConsoleMessageCallback callback, void* userData) {
-    ulViewSetAddConsoleMessageCallback(ptr, callback, userData);
+  void setAddConsoleMessageCallback(AddConsoleMessageCallback callback, void* userData) {
+    ulViewSetAddConsoleMessageCallback(ptr, cast(ULAddConsoleMessageCallback) ((void* user_data, ULView caller, MessageSource source, MessageLevel level, ULString message, uint line_number, uint column_number, ULString source_id) {
+      callback(user_data, new View(caller, No.owned), source, level, message.toString, line_number, column_number, source_id.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the page wants to create a new View.
-  void setCreateChildViewCallback(ULCreateChildViewCallback callback, void* userData) {
-    ulViewSetCreateChildViewCallback(ptr, callback, userData);
+  void setCreateChildViewCallback(CreateChildViewCallback callback, void* userData) {
+    ulViewSetCreateChildViewCallback(ptr, (delegate(void* user_data, ULView caller, ULString opener_url, ULString target_url, bool is_popup, ULIntRect popup_rect) {
+      return callback(user_data, new View(caller, No.owned), opener_url.toString, target_url.toString, is_popup, popup_rect).ptr;
+    }).bindDelegate, userData);
   }
 
   /// Set callback for when the page wants to create a new View to display the local inspector in.
-  void setCreateInspectorViewCallback(ULCreateInspectorViewCallback callback, void* userData) {
-    ulViewSetCreateInspectorViewCallback(ptr, callback, userData);
+  void setCreateInspectorViewCallback(CreateInspectorViewCallback callback, void* userData) {
+    ulViewSetCreateInspectorViewCallback(ptr, (delegate(void* user_data, ULView caller, bool is_local, ULString inspected_url) {
+      return callback(user_data, new View(caller, No.owned), is_local, inspected_url.toString).ptr;
+    }).bindDelegate, userData);
   }
 
   /// Set callback for when the page begins loading a new URL into a frame.
-  void setBeginLoadingCallback(ULBeginLoadingCallback callback, void* userData) {
-    ulViewSetBeginLoadingCallback(ptr, callback, userData);
+  void setBeginLoadingCallback(BeginLoadingCallback callback, void* userData) {
+    ulViewSetBeginLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the page finishes loading a URL into a frame.
-  void setFinishLoadingCallback(ULFinishLoadingCallback callback, void* userData) {
-    ulViewSetFinishLoadingCallback(ptr, callback, userData);
+  void setFinishLoadingCallback(FinishLoadingCallback callback, void* userData) {
+    ulViewSetFinishLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when an error occurs while loading a URL into a frame.
-  void setFailLoadingCallback(ULFailLoadingCallback callback, void* userData) {
-    ulViewSetFailLoadingCallback(ptr, callback, userData);
+  void setFailLoadingCallback(FailLoadingCallback callback, void* userData) {
+    ulViewSetFailLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url, ULString description, ULString error_domain, int error_code) {
+      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString, description.toString, error_domain.toString, error_code);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the JavaScript window object is reset for a new page load.
-  void setWindowObjectReadyCallback(ULWindowObjectReadyCallback callback, void* userData) {
-    ulViewSetWindowObjectReadyCallback(ptr, callback, userData);
+  void setWindowObjectReadyCallback(WindowObjectReadyCallback callback, void* userData) {
+    ulViewSetWindowObjectReadyCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when all JavaScript has been parsed and the document is ready.
-  void setDOMReadyCallback(ULDOMReadyCallback callback, void* userData) {
-    ulViewSetDOMReadyCallback(ptr, callback, userData);
+  void setDOMReadyCallback(DOMReadyCallback callback, void* userData) {
+    ulViewSetDOMReadyCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the history (back/forward state) is modified.
-  void setUpdateHistoryCallback(ULUpdateHistoryCallback callback, void* userData) {
-    ulViewSetUpdateHistoryCallback(ptr, callback, userData);
+  void setUpdateHistoryCallback(UpdateHistoryCallback callback, void* userData) {
+    ulViewSetUpdateHistoryCallback(ptr, ((void* user_data, ULView caller) {
+      callback(user_data, new View(caller, No.owned));
+    }).toDelegate.bindDelegate, userData);
   }
 
   /// Set whether or not a view should be repainted during the next call to `Renderer.render`.
@@ -730,8 +761,6 @@ class View {
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___surface_8h.html
 class Surface {
-  import std.typecons: Flag, Yes;
-
   ///
   ULSurface ptr;
   /// Whether this surface is managed.

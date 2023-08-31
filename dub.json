@@ -51,7 +51,6 @@
     {
       "name": "unittest",
       "postBuildCommands-linux": [
-        "which patchelf",
         "patchelf --set-rpath '$$ORIGIN/ultralight/.' bin/ultralight-test-unittest"
       ],
       "postBuildCommands-osx": [
