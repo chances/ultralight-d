@@ -9,9 +9,16 @@
   "targetName": "ultralight-d",
   "targetPath": "bin",
   "targetType": "staticLibrary",
-  "preBuildCommands": ["make ultralight"],
+  "preBuildCommands-posix": ["make ultralight"],
+  "preBuildCommands-windows": [
+    "if not exist node_modules npm i",
+    "if not exist subprojects\\ultralight\\SDK\\lib node subprojects/ultralight/download.mjs",
+    "if not exist bin md bin",
+    "copy /y subprojects\\ultralight\\SDK\\bin\\* bin"
+  ],
   "dflags": ["-P-Isubprojects/ultralight/SDK/include"],
-  "copyFiles": ["bin/ultralight"],
+  "copyFiles-posix": ["bin/ultralight"],
+  "copyFiles-windows": ["bin/*.dll"],
   "libs": [
     "Ultralight",
     "UltralightCore",
@@ -19,7 +26,7 @@
     "AppCore"
   ],
   "libs-linux": [],
-  "lflags": [
+  "lflags-posix": [
     "-L$ULTRALIGHT_PACKAGE_DIR/bin/ultralight"
   ],
   "lflags-linux": [

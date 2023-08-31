@@ -8,28 +8,40 @@ jobs:
   test:
     name: Tests
 
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        dc: [ldc-1.33.0]
+        # Use DMD D compiler on Windows
+        # See https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#example-adding-configurations
+        # FIXME: subprojects/ultralight/SDK/include\Ultralight/CAPI/CAPI_Defines.h(11): fatal error C1083: Cannot open include file: 'stddef.h': No such file or directory
+        # include:
+        #   - os: windows-latest
+        #     dc: dmd-2.105.0
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
     - name: Install D compiler
       uses: dlang-community/setup-dlang@v1
       with:
-        compiler: ldc-1.33.0
+        compiler: ${{ matrix.dc }}
     # TODO: This doesn't seem necessary on GitHub Actions
     # - name: Install *nix Dependencies
     #   if: runner.os == 'Linux'
     #   run: sudo apt-get install --quiet -y p7zip-full
     - name: Lint
       run: dub lint
-    # - name: Clone subprojects
-    #   run: git submodule update --init --recursive
+    - name: Download Ultralight SDK
+      if: runner.os != 'Windows'
+      run: make ultralight
     - name: Test
-      run: make ultralight && dub test --coverage
+      run: dub test --coverage
     # - name: Integration Test
     #   run: make headless
     - name: Upload Coverage to Codecov
-      if: success()
+      if: success() && runner.os != 'Linux'
       run: bash <(curl -s https://codecov.io/bash)
     # - name: Upload Test Log Artifact on Failure
     #   uses: actions/upload-artifact@v1
