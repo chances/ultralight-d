@@ -1,5 +1,6 @@
 SDK/include/
 SDK/inspector/
+SDK/lib/
 SDK/resources/
 SDK/samples/
 SDK/CMakeLists.txt
