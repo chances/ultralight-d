@@ -13,5 +13,11 @@
       "path": "../../"
     }
   },
-  "copyFiles": ["views/*"]
+  "copyFiles": ["views/*"],
+  "postBuildCommands-linux": [
+    "patchelf --set-rpath '$$ORIGIN/ultralight/.' ../../bin/ultralight_png"
+  ],
+  "postBuildCommands-osx": [
+    "install_name_tool -add_rpath @executable_path/ultralight ../../bin/ultralight_png"
+  ]
 }
