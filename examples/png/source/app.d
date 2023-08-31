@@ -24,15 +24,15 @@ void main() {
   auto renderer = new Renderer();
 
   // Create a view.
-  // 
+  //
   // Views are sized containers for loading and displaying web content.
   //
   // Let's set a 2x DPI scale and disable GPU acceleration so we can render to a bitmap.
-  auto viewConfig = ViewConfig();
+  auto viewConfig = new ViewConfig();
   viewConfig.initialDeviceScale = 2.0;
   viewConfig.isAccelerated = false;
   auto view = renderer.createView(800, 600, viewConfig, null);
-  delete viewConfig;
+  object.destroy(viewConfig);
 
   // Register onFinishLoading() callback with the view.
   view.setFinishLoadingCallback(&onFinishLoading, null);
@@ -61,7 +61,7 @@ void main() {
 }
 
 ///
-extern(C) void onFinishLoading(void* userData, ULView caller, ulong frameId, bool isMainFrame, ULString url) {
+extern(C) void onFinishLoading(void* userData, View caller, ulong frameId, bool isMainFrame, String url) {
   assert(caller !is null);
   assert(frameId);
   assert(url);
