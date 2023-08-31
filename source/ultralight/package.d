@@ -682,49 +682,73 @@ class View {
 
   /// Set callback for when a message is added to the console (useful for JavaScript / network errors and debugging).
   void setAddConsoleMessageCallback(AddConsoleMessageCallback callback, void* userData) {
-    ulViewSetAddConsoleMessageCallback(ptr, cast(ULAddConsoleMessageCallback) ((void* user_data, ULView caller, MessageSource source, MessageLevel level, ULString message, uint line_number, uint column_number, ULString source_id) {
-      callback(user_data, new View(caller, No.owned), source, level, message.toString, line_number, column_number, source_id.toString);
+    ulViewSetAddConsoleMessageCallback(ptr, cast(ULAddConsoleMessageCallback) ((
+      void* user_data, ULView caller, MessageSource source, MessageLevel level,
+      ULString message, uint line_number, uint column_number, ULString source_id
+    ) {
+      callback(
+        user_data, new View(caller, No.owned), source, level,
+        message.toString, line_number, column_number, source_id.toString
+      );
     }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the page wants to create a new View.
   void setCreateChildViewCallback(CreateChildViewCallback callback, void* userData) {
-    ulViewSetCreateChildViewCallback(ptr, (delegate(void* user_data, ULView caller, ULString opener_url, ULString target_url, bool is_popup, ULIntRect popup_rect) {
-      return callback(user_data, new View(caller, No.owned), opener_url.toString, target_url.toString, is_popup, popup_rect).ptr;
+    ulViewSetCreateChildViewCallback(ptr, (delegate(
+      void* user_data, ULView caller, ULString opener_url, ULString target_url, bool is_popup, ULIntRect popup_rect
+    ) {
+      return callback(
+        user_data, new View(caller, No.owned), opener_url.toString, target_url.toString, is_popup, popup_rect
+      ).ptr;
     }).bindDelegate, userData);
   }
 
   /// Set callback for when the page wants to create a new View to display the local inspector in.
   void setCreateInspectorViewCallback(CreateInspectorViewCallback callback, void* userData) {
-    ulViewSetCreateInspectorViewCallback(ptr, (delegate(void* user_data, ULView caller, bool is_local, ULString inspected_url) {
+    ulViewSetCreateInspectorViewCallback(ptr, (delegate(
+      void* user_data, ULView caller, bool is_local, ULString inspected_url
+    ) {
       return callback(user_data, new View(caller, No.owned), is_local, inspected_url.toString).ptr;
     }).bindDelegate, userData);
   }
 
   /// Set callback for when the page begins loading a new URL into a frame.
   void setBeginLoadingCallback(BeginLoadingCallback callback, void* userData) {
-    ulViewSetBeginLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+    ulViewSetBeginLoadingCallback(ptr, ((
+      void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url
+    ) {
       callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
     }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the page finishes loading a URL into a frame.
   void setFinishLoadingCallback(FinishLoadingCallback callback, void* userData) {
-    ulViewSetFinishLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+    ulViewSetFinishLoadingCallback(ptr, ((
+      void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url
+    ) {
       callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
     }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when an error occurs while loading a URL into a frame.
   void setFailLoadingCallback(FailLoadingCallback callback, void* userData) {
-    ulViewSetFailLoadingCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url, ULString description, ULString error_domain, int error_code) {
-      callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString, description.toString, error_domain.toString, error_code);
+    ulViewSetFailLoadingCallback(ptr, ((
+      void* user_data, ULView caller, ulong frame_id, bool is_main_frame,
+      ULString url, ULString description, ULString error_domain, int error_code
+    ) {
+      callback(
+        user_data, new View(caller, No.owned), frame_id, is_main_frame,
+        url.toString, description.toString, error_domain.toString, error_code
+      );
     }).toDelegate.bindDelegate, userData);
   }
 
   /// Set callback for when the JavaScript window object is reset for a new page load.
   void setWindowObjectReadyCallback(WindowObjectReadyCallback callback, void* userData) {
-    ulViewSetWindowObjectReadyCallback(ptr, ((void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url) {
+    ulViewSetWindowObjectReadyCallback(ptr, ((
+      void* user_data, ULView caller, ulong frame_id, bool is_main_frame, ULString url
+    ) {
       callback(user_data, new View(caller, No.owned), frame_id, is_main_frame, url.toString);
     }).toDelegate.bindDelegate, userData);
   }
