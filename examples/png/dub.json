@@ -1,0 +1,17 @@
+{
+  "name": "png",
+  "description": "Render to PNG example for ultralight",
+  "license": "MIT",
+  "copyright": "Copyright © 2023, Chance Snow",
+  "authors": [
+  	"Chance Snow <git@chancesnow.me>"
+  ],
+  "targetType": "executable",
+  "targetPath": "../../bin",
+  "dependencies": {
+    "ultralight": {
+      "path": "../../"
+    }
+  },
+  "copyFiles": ["views/*"]
+}

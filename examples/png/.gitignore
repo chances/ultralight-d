@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/png
+png.so
+png.dylib
+png.dll
+png.a
+png.lib
+png-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
