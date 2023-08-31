@@ -6,7 +6,7 @@ SDK bindings and an idiomatic D wrapper of the lightweight, high-performance HTM
 
 ```json
   "dependencies": {
-  	"ultralight": "0.3.0"
+  	"ultralight": "~>0.3.0"
   }
 ```
 
