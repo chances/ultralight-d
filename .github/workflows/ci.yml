@@ -20,7 +20,7 @@ jobs:
     - name: Install D compiler
       uses: dlang-community/setup-dlang@v1
       with:
-        compiler: ${{ matrix.dc }}
+        compiler: ${{ runner.os != 'Windows' && matrix.dc || 'dmd-2.105.0' }}
     # TODO: This doesn't seem necessary on GitHub Actions
     # - name: Install *nix Dependencies
     #   if: runner.os == 'Linux'
