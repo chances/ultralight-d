@@ -12,9 +12,12 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         dc: [ldc-1.33.0]
-        include:
-          - os: windows-latest
-            dc: dmd-2.105.0
+        # Use DMD D compiler on Windows
+        # See https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#example-adding-configurations
+        # FIXME: subprojects/ultralight/SDK/include\Ultralight/CAPI/CAPI_Defines.h(11): fatal error C1083: Cannot open include file: 'stddef.h': No such file or directory
+        # include:
+        #   - os: windows-latest
+        #     dc: dmd-2.105.0
 
     runs-on: ${{ matrix.os }}
 
