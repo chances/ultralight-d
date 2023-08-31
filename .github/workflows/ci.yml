@@ -8,24 +8,30 @@ jobs:
   test:
     name: Tests
 
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        dc: [ldc-1.33.0]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
     - name: Install D compiler
       uses: dlang-community/setup-dlang@v1
       with:
-        compiler: ldc-1.33.0
+        compiler: ${{ matrix.dc }}
     # TODO: This doesn't seem necessary on GitHub Actions
     # - name: Install *nix Dependencies
     #   if: runner.os == 'Linux'
     #   run: sudo apt-get install --quiet -y p7zip-full
     - name: Lint
       run: dub lint
-    # - name: Clone subprojects
-    #   run: git submodule update --init --recursive
+    - name: Download Ultralight SDK
+      if: runner.os != 'Windows'
+      run: make ultralight
     - name: Test
-      run: make ultralight && dub test --coverage
+      run: dub test --coverage
     # - name: Integration Test
     #   run: make headless
     - name: Upload Coverage to Codecov
