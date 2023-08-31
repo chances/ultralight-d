@@ -12,7 +12,7 @@
   "preBuildCommands-posix": ["make ultralight"],
   "preBuildCommands-windows": [
     "if not exist node_modules npm i",
-    "if not exist subprojects/ultralight/SDK node subprojects/ultralight/download.mjs",
+    "if not exist subprojects\\ultralight\\SDK\\lib node subprojects/ultralight/download.mjs",
     "if not exist bin md bin",
     "copy /y subprojects\\ultralight\\SDK\\bin\\* bin"
   ],
