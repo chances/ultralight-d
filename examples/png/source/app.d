@@ -2,6 +2,8 @@ import std.stdio;
 import ultralight;
 
 // See https://github.com/ultralight-ux/Ultralight/blob/master/samples/Sample%201%20-%20Render%20to%20PNG/C-API/main.c
+
+///
 static bool done = false;
 
 void main() {
@@ -58,7 +60,12 @@ void main() {
   writeln("Saved a render of page to result.png");
 }
 
-extern(C) void onFinishLoading(void* userData, View caller, ulong frameId, bool isMainFrame, String url) {
+///
+extern(C) void onFinishLoading(void* userData, ULView caller, ulong frameId, bool isMainFrame, ULString url) {
+  assert(caller !is null);
+  assert(frameId);
+  assert(url);
+
   // Page is done when the main frame is finished loading.
   if (!isMainFrame) return;
 
