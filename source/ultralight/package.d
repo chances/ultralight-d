@@ -463,6 +463,7 @@ class View {
   package this(ULView view) {
     this.ptr = view;
   }
+
   ~this() {
     assert(ptr);
     ulDestroyView(ptr);
@@ -470,32 +471,32 @@ class View {
   }
 
   /// Get current URL.
-  string getURL() {
+  string url() {
     return ulViewGetURL(ptr).toString;
   }
 
   /// Get current title.
-  string getTitle() {
+  string title() {
     return ulViewGetTitle(ptr).toString;
   }
 
   /// Get the width, in pixels.
-  uint getWidth() {
+  uint width() {
     return ulViewGetWidth(ptr);
   }
 
   /// Get the height, in pixels.
-  uint getHeight() {
+  uint height() {
     return ulViewGetHeight(ptr);
   }
 
   /// Get the device scale.
-  double getDeviceScale() {
+  double deviceScale() {
     return ulViewGetDeviceScale(ptr);
   }
 
   /// Set the device scale.
-  void setDeviceScale(double scale) {
+  void deviceScale(double scale) {
     ulViewSetDeviceScale(ptr, scale);
   }
 
@@ -509,37 +510,39 @@ class View {
     return ulViewIsTransparent(ptr);
   }
 
-  /// Check if the main frame of the page is currrently loading.
+  /// Check if the main frame of the page is currently loading.
   bool isLoading() {
     return ulViewIsLoading(ptr);
   }
 
   /// Get the RenderTarget for the View.
-  ULRenderTarget getRenderTarget() {
+  ULRenderTarget renderTarget() {
     // TODO: Wrap `RenderTarget` for D.
     return ulViewGetRenderTarget(ptr);
   }
 
   /// Get the Surface for the View (native pixel buffer that the CPU renderer draws into).
-  Surface getSurface() {
-    return new Surface(ulViewGetSurface(ptr));
+  Surface surface() {
+    import std.typecons: No;
+
+    return new Surface(ulViewGetSurface(ptr), No.owned);
   }
 
   /// Load a raw string of HTML.
-  void loadHTML(string htmlString) {
-    this.loadHTML(htmlString.toUlString);
+  void loadHtml(string htmlString) {
+    this.loadHtml(htmlString.toUlString);
   }
   /// ditto
-  void loadHTML(String htmlString) {
+  void loadHtml(String htmlString) {
     ulViewLoadHTML(ptr, htmlString.ptr);
   }
 
   /// Load a URL into main frame.
-  void loadURL(string urlString) {
-    this.loadURL(urlString.toUlString);
+  void loadUrl(string urlString) {
+    this.loadUrl(urlString.toUlString);
   }
   /// ditto
-  void loadURL(String urlString) {
+  void loadUrl(String urlString) {
     ulViewLoadURL(ptr, urlString.ptr);
   }
 
@@ -549,13 +552,13 @@ class View {
   }
 
   /// Acquire the page's `JSContext` for use with JavaScriptCore API.
-  JSContextRef lockJSContext() {
+  JSContextRef lockJsContext() {
     // TODO: Wrap `RenderTarget` for D.
     return ulViewLockJSContext(ptr);
   }
 
-  /// Unlock the page's `JSContext` after a previous call to `View.lockJSContext`.
-  void unlockJSContext() {
+  /// Unlock the page's `JSContext` after a previous call to `View.lockJsContext`.
+  void unlockJsContext() {
     ulViewUnlockJSContext(ptr);
   }
 
@@ -563,7 +566,8 @@ class View {
   string evaluateScript(string jsString, ref string exception) {
     auto exceptionStr = exception is null ? null : new String(null.to!ULString);
     auto result = this.evaluateScript(jsString.toUlString, exceptionStr);
-    if (exceptionStr !is null) exception = exceptionStr.toString;
+    if (exceptionStr !is null)
+      exception = exceptionStr.toString;
     return result;
   }
   /// ditto
@@ -726,11 +730,76 @@ class View {
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___surface_8h.html
 class Surface {
+  import std.typecons: Flag, Yes;
+
   ///
   ULSurface ptr;
+  /// Whether this surface is managed.
+  bool owned;
 
-  package this(ULSurface surface) {
+  package this(ULSurface surface, Flag!"owned" owned = Yes.owned) {
     this.ptr = surface;
+    this.owned = owned;
+  }
+
+  /// Width (in pixels).
+  uint width() {
+    return ulSurfaceGetWidth(ptr);
+  }
+
+  /// Height (in pixels).
+  uint height() {
+    return ulSurfaceGetHeight(ptr);
+  }
+
+  /// Number of bytes between rows (usually width * 4)
+  uint rowBytes() {
+    return ulSurfaceGetRowBytes(ptr);
+  }
+
+  /// Size in bytes.
+  size_t size() {
+    return ulSurfaceGetSize(ptr);
+  }
+
+  /// Lock the pixel buffer and get a pointer to the beginning of the data for reading/writing.
+  /// ditto
+  void* lockPixels() {
+    return ulSurfaceLockPixels(ptr);
+  }
+
+  /// Unlock the pixel buffer.
+  void unlockPixels() {
+    ulSurfaceUnlockPixels(ptr);
+  }
+
+  /// Resize the pixel buffer to a certain width and height (both in pixels).
+  void resize(uint width, uint height) {
+    ulSurfaceResize(ptr, width, height);
+  }
+
+  /// Get the dirty bounds.
+  ULIntRect dirtyBounds() {
+    return ulSurfaceGetDirtyBounds(ptr);
+  }
+  /// Set the dirty bounds to a certain value.
+  void dirtyBounds(ULIntRect bounds) {
+    ulSurfaceSetDirtyBounds(ptr, bounds);
+  }
+
+  /// Clear the dirty bounds.
+  void clearDirtyBounds() {
+    ulSurfaceClearDirtyBounds(ptr);
+  }
+
+  /// Get the underlying user data pointer (this is only valid if you have set a custom surface implementation via `Platform.setSurfaceDefinition`).
+  void* userData() {
+    return ulSurfaceGetUserData(ptr);
+  }
+
+  /// Get the underlying Bitmap from the default Surface.
+  Bitmap bitmap() {
+    return new Bitmap(ulBitmapSurfaceGetBitmap(ptr));
   }
 }
 
@@ -757,8 +826,7 @@ class Bitmap {
   /// Destroy a bitmap.
   /// Remarks: You should only destroy Bitmaps you have explicitly created via one of the creation functions above.
   ~this() {
-    if (owned)
-      ulDestroyBitmap(ptr);
+    if (owned) ulDestroyBitmap(ptr);
   }
 
   /// Create bitmap from existing pixel buffer.
