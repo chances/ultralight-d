@@ -10,8 +10,11 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
         dc: [ldc-1.33.0]
+        include:
+          - os: windows-latest
+            dc: dmd-2.105.0
 
     runs-on: ${{ matrix.os }}
 
@@ -20,7 +23,7 @@ jobs:
     - name: Install D compiler
       uses: dlang-community/setup-dlang@v1
       with:
-        compiler: ${{ runner.os != 'Windows' && matrix.dc || 'dmd-2.105.0' }}
+        compiler: ${{ matrix.dc }}
     # TODO: This doesn't seem necessary on GitHub Actions
     # - name: Install *nix Dependencies
     #   if: runner.os == 'Linux'
