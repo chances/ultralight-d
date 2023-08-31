@@ -35,7 +35,7 @@ jobs:
     # - name: Integration Test
     #   run: make headless
     - name: Upload Coverage to Codecov
-      if: success()
+      if: success() && runner.os != 'Linux'
       run: bash <(curl -s https://codecov.io/bash)
     # - name: Upload Test Log Artifact on Failure
     #   uses: actions/upload-artifact@v1
