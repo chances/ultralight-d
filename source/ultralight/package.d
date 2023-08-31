@@ -228,6 +228,11 @@ class Renderer {
     return new Session(ulDefaultSession(ptr));
   }
 
+  ///
+  View createView(uint width, uint height, ViewConfig viewConfig, void* userData = null) {
+    return new View(ulCreateView(width, height, viewConfig.ptr, userData));
+  }
+
   /// Update timers and dispatch internal callbacks (JavaScript and network).
   void update() {
     ulUpdate(ptr);
@@ -350,6 +355,100 @@ class Session {
   }
 }
 
+/// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___view_8h.html
+class ViewConfig {
+  ///
+  ULViewConfig ptr;
+
+  /// Create view configuration with default values.
+  /// See_Also: Ultralight/platform/View.h
+  this() {
+    ptr = ulCreateViewConfig();
+  }
+  ~this() {
+    assert(ptr);
+    ulDestroyViewConfig(ptr);
+    ptr = null;
+  }
+
+  /// Whether to render using the GPU renderer (accelerated) or the CPU renderer (unaccelerated).
+  void isAccelerated(bool value) {
+    ulViewConfigSetIsAccelerated(ptr, value);
+  }
+
+  /// Set whether images should be enabled (Default = True).
+  void isTransparent(ptr, bool is_transparent) {
+    ulViewConfigSetIsTransparent(ptr, is_transparent);
+  }
+
+  /// The initial device scale.
+  ///
+  /// The amount to scale page units to screen pixels. This should be set to the scaling factor of the device that the View is displayed on. (Default = 1.0)
+  void initialDeviceScale(double value) {
+    ulViewConfigSetInitialDeviceScale(ptr, value);
+  }
+
+  /// Whether or not the View should initially have input focus.
+  void initialFocus(bool isFocused) {
+    ulViewConfigSetInitialFocus(ptr, isFocused);
+  }
+
+  /// Set whether images should be enabled (Default = True).
+  void enableImages(bool enabled) {
+    ulViewConfigSetEnableImages(ptr, enabled);
+  }
+ 
+  /// Set whether JavaScript should be enabled (Default = True).
+  void enableJavaScript(bool enabled) {
+    ulViewConfigSetEnableJavaScript(ptr, enabled);
+  }
+ 
+  /// Set default font-family to use (Default = Times New Roman).
+  void fontFamilyStandard(string fontName) {
+    this.fontFamilyStandard(fontName.toUlString);
+  }
+  /// ditto
+  void fontFamilyStandard(ULString fontName) {
+    ulViewConfigSetFontFamilyStandard(ptr, fontName);
+  }
+ 
+  /// Set default font-family to use for fixed fonts, eg.
+  void fontFamilyFixed(string fontName) {
+    this.fontFamilyFixed(fontName.toUlString);
+  }
+  /// ditto
+  void fontFamilyFixed(ULString fontName) {
+    ulViewConfigSetFontFamilyFixed(ptr, fontName);
+  }
+ 
+  /// Set default font-family to use for serif fonts (Default = Times New Roman).
+  void fontFamilySerif(string fontName) {
+    this.fontFamilySerif(fontName.toUlString);
+  }
+  /// ditto
+  void fontFamilySerif(ULString fontName) {
+    ulViewConfigSetFontFamilySerif(ptr, fontName);
+  }
+ 
+  /// Set default font-family to use for sans-serif fonts (Default = Arial).
+  void fontFamilySansSerif(string fontName) {
+    this.fontFamilySansSerif(fontName.toUlString);
+  }
+  /// ditto
+  void fontFamilySansSerif(ULString fontName) {
+    ulViewConfigSetFontFamilySansSerif(ptr, fontName);
+  }
+ 
+  /// Set user agent string (See <Ultralight/platform/Config.h> for the default).
+  void userAgent(string agentString) {
+    this.userAgent(agentString.toUlString);
+  }
+  /// ditto
+  void userAgent(ULString agentString) {
+    ulViewConfigSetUserAgent(ptr, agentString);
+  }
+}
+
 /// View is a web-page container rendered to an offscreen surface that you display yourself.
 ///
 /// The View object is responsible for loading and rendering web-pages to an offscreen surface.
@@ -358,10 +457,277 @@ class Session {
 /// Remarks: The API is not thread-safe, all calls must be made on the same thread that the Renderer/App was created on.
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___view_8h.html
 class View {
+  ///
+  ULView ptr;
+
+  package this(ULView view) {
+    this.ptr = view;
+  }
+  ~this() {
+    assert(ptr);
+    ulDestroyView(ptr);
+    ptr = null;
+  }
+
+  /// Get current URL.
+  string getURL() {
+    return ulViewGetURL(ptr).toString;
+  }
+ 
+  /// Get current title.
+  string getTitle() {
+    return ulViewGetTitle(ptr).toString;
+  }
+ 
+  /// Get the width, in pixels.
+  uint getWidth() {
+    return ulViewGetWidth(ptr);
+  }
+ 
+  /// Get the height, in pixels.
+  uint getHeight() {
+    return ulViewGetHeight(ptr);
+  }
+ 
+  /// Get the device scale.
+  double getDeviceScale() {
+    return ulViewGetDeviceScale(ptr);
+  }
+ 
+  /// Set the device scale.
+  void setDeviceScale(double scale) {
+    ulViewSetDeviceScale(ptr, scale);
+  }
+ 
+  /// Whether or not the View is GPU-accelerated.
+  bool isAccelerated() {
+    return ulViewIsAccelerated(ptr);
+  }
+ 
+  /// Whether or not the View supports transparent backgrounds.
+  bool isTransparent() {
+    return ulViewIsTransparent(ptr);
+  }
+ 
+  /// Check if the main frame of the page is currrently loading.
+  bool isLoading() {
+    return ulViewIsLoading(ptr);
+  }
+ 
+  /// Get the RenderTarget for the View.
+  ULRenderTarget getRenderTarget() {
+    // TODO: Wrap `RenderTarget` for D.
+    return ulViewGetRenderTarget(ptr);
+  }
+ 
+  /// Get the Surface for the View (native pixel buffer that the CPU renderer draws into).
+  Surface getSurface() {
+    return new Surface(ulViewGetSurface(ptr));
+  }
+ 
+  /// Load a raw string of HTML.
+  void loadHTML(string htmlString) {
+    this.loadHTML(htmlString.toUlString);
+  }
+  /// ditto
+  void loadHTML(ULString htmlString) {
+    ulViewLoadHTML(ptr, htmlString);
+  }
+ 
+  /// Load a URL into main frame.
+  void loadURL(string urlString) {
+    this.loadURL(urlString.toUlString);
+  }
+  /// ditto
+  void loadURL(ULString urlString) {
+    ulViewLoadURL(ptr, urlString);
+  }
+ 
+  /// Resize view to a certain width and height (in pixels).
+  void resize(uint width, uint height) {
+    ulViewResize(ptr, width, height);
+  }
+ 
+  /// Acquire the page's `JSContext` for use with JavaScriptCore API.
+  JSContextRef lockJSContext() {
+    // TODO: Wrap `RenderTarget` for D.
+    return ulViewLockJSContext(ptr);
+  }
+ 
+  /// Unlock the page's `JSContext` after a previous call to `View.lockJSContext`.
+  void unlockJSContext() {
+    ulViewUnlockJSContext(ptr);
+  }
+ 
+  /// Evaluate a string of JavaScript and return result.
+  string evaluateScript(string jsString, out string exception = null) {
+    auto exceptionStr = exception is null ? null : new String();
+    auto result = this.evaluateScript(jsString.toUlString, exceptionStr);
+    if (exceptionStr !is null) exception = exceptionStr.toString;
+    return result;
+  }
+  /// ditto
+  string evaluateScript(String jsString, out ref String exception) {
+    return ulViewEvaluateScript(
+      ptr, jsString.ptr, exception is null ? null : exception.ptr
+    ).toString;
+  }
+ 
+  /// Check if can navigate backwards in history.
+  bool canGoBack() {
+    ulViewCanGoBack(ptr);
+  }
+ 
+  /// Check if can navigate forwards in history.
+  bool canGoForward() {
+    ulViewCanGoForward(ptr);
+  }
+ 
+  /// Navigate backwards in history.
+  void goBack() {
+    ulViewGoBack(ptr);
+  }
+ 
+  /// Navigate forwards in history.
+  void goForward() {
+    ulViewGoForward(ptr);
+  }
+ 
+  /// Navigate to arbitrary offset in history.
+  void goToHistoryOffset(int offset) {
+    ulViewGoToHistoryOffset(ptr, offset);
+  }
+ 
+  /// Reload current page.
+  void reload() {
+    ulViewReload(ptr);
+  }
+ 
+  /// Stop all page loads.
+  void stop() {
+    ulViewStop(ptr);
+  }
+ 
+  /// Give focus to the View.
+  void focus() {
+    ulViewFocus(ptr);
+  }
+ 
+  /// Remove focus from the View and unfocus any focused input elements.
+  void unfocus() {
+    ulViewUnfocus(ptr);
+  }
+ 
+  /// Whether or not the View has focus.
+  bool hasFocus() {
+    ulViewHasFocus(ptr);
+  }
+ 
+  /// Whether or not the View has an input element with visible keyboard focus (indicated by a blinking caret).
+  bool hasInputFocus() {
+    ulViewHasInputFocus(ptr);
+  }
+ 
+  /// Fire a keyboard event.
+  void fireKeyEvent(KeyEvent keyEvent) {
+    ulViewFireKeyEvent(ptr, keyEvent.ptr);
+  }
+ 
+  /// Fire a mouse event.
+  void fireMouseEvent(MouseEvent mouseEvent) {
+    ulViewFireMouseEvent(ptr, mouseEvent.ptr);
+  }
+ 
+  /// Fire a scroll event.
+  void fireScrollEvent(ScrollEvent scrollEvent) {
+    ulViewFireScrollEvent(ptr, scrollEvent.ptr);
+  }
+ 
+  /// Set callback for when the page title changes.
+  void setChangeTitleCallback(ULChangeTitleCallback callback, void* userData) {
+    ulViewSetChangeTitleCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the page URL changes.
+  void setChangeURLCallback(ULChangeURLCallback callback, void* userData) {
+    ulViewSetChangeURLCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the tooltip changes (usually result of a mouse hover).
+  void setChangeTooltipCallback(ULChangeTooltipCallback callback, void* userData) {
+    ulViewSetChangeTooltipCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the mouse cursor changes.
+  void setChangeCursorCallback(ULChangeCursorCallback callback, void* userData) {
+    ulViewSetChangeCursorCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when a message is added to the console (useful for JavaScript / network errors and debugging).
+  void setAddConsoleMessageCallback(ULAddConsoleMessageCallback callback, void* userData) {
+    ulViewSetAddConsoleMessageCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the page wants to create a new View.
+  void setCreateChildViewCallback(ULCreateChildViewCallback callback, void* userData) {
+    ulViewSetCreateChildViewCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the page wants to create a new View to display the local inspector in.
+  void setCreateInspectorViewCallback(ULCreateInspectorViewCallback callback, void* userData) {
+    ulViewSetCreateInspectorViewCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the page begins loading a new URL into a frame.
+  void setBeginLoadingCallback(ULBeginLoadingCallback callback, void* userData) {
+    ulViewSetBeginLoadingCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the page finishes loading a URL into a frame.
+  void setFinishLoadingCallback(ULFinishLoadingCallback callback, void* userData) {
+    ulViewSetFinishLoadingCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when an error occurs while loading a URL into a frame.
+  void setFailLoadingCallback(ULFailLoadingCallback callback, void* userData) {
+    ulViewSetFailLoadingCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the JavaScript window object is reset for a new page load.
+  void setWindowObjectReadyCallback(ULWindowObjectReadyCallback callback, void* userData) {
+    ulViewSetWindowObjectReadyCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when all JavaScript has been parsed and the document is ready.
+  void setDOMReadyCallback(ULDOMReadyCallback callback, void* userData) {
+    ulViewSetDOMReadyCallback(ptr, callback, userData);
+  }
+ 
+  /// Set callback for when the history (back/forward state) is modified.
+  void setUpdateHistoryCallback(ULUpdateHistoryCallback callback, void* userData) {
+    ulViewSetUpdateHistoryCallback(ptr, callback, userData);
+  }
+ 
+  /// Set whether or not a view should be repainted during the next call to `Renderer.render`.
+  void needsPaint(bool needs_paint) {
+    ulViewSetNeedsPaint(ptr, needs_paint);
+  }
+ 
+  /// Whether or not a view should be painted during the next call to `Renderer.render`.
+  bool needsPaint() {
+    return ulViewGetNeedsPaint(ptr);
+  }
+ 
+  /// Create an Inspector View to inspect/debug this View locally.
+  void createLocalInspectorView() {
+    ulViewCreateLocalInspectorView(ptr);
+  }
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___surface_8h.html
 class Surface {
+  ///
+  ULSurface ptr;
 }
 
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___bitmap_8h.html
