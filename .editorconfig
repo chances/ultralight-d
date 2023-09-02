@@ -16,3 +16,10 @@ insert_final_newline = true
 [{Makefile,*.Makefile}]
 indent_style = tab
 indent_size = 4
+
+# D Formatter
+# See https://github.com/dlang-community/dfmt#standard-editorconfig-properties
+[*.d]
+max_line_length = 120
+dfmt_brace_style = knr
+dfmt_align_switch_statements = false
