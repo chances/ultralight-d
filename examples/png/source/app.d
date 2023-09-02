@@ -9,6 +9,9 @@ static bool done = false;
 void main() {
   import std.functional: toDelegate;
 
+  // Use Ultralight's default configuration;
+  Platform.config = Platform.defaultConfig;
+
   // We must provide our own Platform API handlers since we're not using ulCreateApp().
   //
   // `FileSystem` and `FontLoader` Platform API handlers are required.
