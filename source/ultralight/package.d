@@ -206,6 +206,7 @@ class Config {
 class Renderer {
   ///
   ULRenderer ptr;
+  alias ptr this;
 
   /// Create a new renderer.
   ///
@@ -224,62 +225,62 @@ class Renderer {
   }
   /// ditto
   Session createSession(bool isPersistent, String name) {
-    return new Session(ulCreateSession(ptr, isPersistent, name.ptr));
+    return new Session(ulCreateSession(this, isPersistent, name.ptr));
   }
 
   /// Get the default session (persistent session named "default").
   Session defaultSession() {
-    return new Session(ulDefaultSession(ptr));
+    return new Session(ulDefaultSession(this));
   }
 
   ///
   View createView(uint width, uint height, ViewConfig viewConfig, Session session = null) {
-    return new View(ulCreateView(ptr, width, height, viewConfig.ptr, session.ptr));
+    return new View(ulCreateView(this, width, height, viewConfig.ptr, session.ptr));
   }
 
   /// Update timers and dispatch internal callbacks (JavaScript and network).
   void update() {
-    ulUpdate(ptr);
+    ulUpdate(this);
   }
 
   /// Render all active Views.
   void render() {
-    ulRender(ptr);
+    ulRender(this);
   }
 
   /// Attempt to release as much memory as possible.
   void purgeMemory() {
-    ulPurgeMemory(ptr);
+    ulPurgeMemory(this);
   }
 
   /// Print detailed memory usage statistics to the log.
   void logMemoryUsage() {
-    ulLogMemoryUsage(ptr);
+    ulLogMemoryUsage(this);
   }
 
   /// Start the remote inspector server.
   bool startRemoteInspectorServer(string address, ushort port) {
-    return ulStartRemoteInspectorServer(ptr, address.toStringz, port);
+    return ulStartRemoteInspectorServer(this, address.toStringz, port);
   }
 
   /// Describe the details of a gamepad, to be used with `ulFireGamepadEvent` and related events below.
   void setGamepadDetails(uint index, string id, uint axis_count, uint button_count) {
-    ulSetGamepadDetails(ptr, index, cast(C_String*) id.toStringz, axis_count, button_count);
+    ulSetGamepadDetails(this, index, cast(C_String*) id.toStringz, axis_count, button_count);
   }
 
   /// Fire a gamepad event (connection / disconnection).
   void fireGamepadEvent(ULGamepadEvent evt) {
-    ulFireGamepadEvent(ptr, evt);
+    ulFireGamepadEvent(this, evt);
   }
 
   /// Fire a gamepad axis event (to be called when an axis value is changed).
   void fireGamepadAxisEvent(ULGamepadAxisEvent evt) {
-    ulFireGamepadAxisEvent(ptr, evt);
+    ulFireGamepadAxisEvent(this, evt);
   }
 
   /// Fire a gamepad button event (to be called when a button value is changed).
   void fireGamepadButtonEvent(ULGamepadButtonEvent evt) {
-    ulFireGamepadButtonEvent(ptr, evt);
+    ulFireGamepadButtonEvent(this, evt);
   }
 }
 
