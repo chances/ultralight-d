@@ -10,14 +10,6 @@ import ultralight.bindings;
 public import ultralight.callbacks;
 public import ultralight.enums;
 
-/// Global configuration singleton, manages user-defined configuration.
-static Config config;
-
-/// Create the `Renderer` singleton.
-static this() {
-  config = Config(ulCreateConfig());
-}
-
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___string_8h.html
 class String {
   ///
@@ -97,105 +89,116 @@ string toString(ULString str) {
   return ulStringGetData(str)[0 .. ulStringGetLength(str)].to!string.idup;
 }
 
+/// Global configuration singleton, manages user-defined configuration.
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___config_8h.html
-struct Config {
+class Config {
+  import std.typecons: Nullable;
+
   ///
   ULConfig ptr;
+  alias ptr this;
 
+  package this(ULConfig config) {
+    ptr = config;
+  }
+  ///
+  this(Nullable!string cachePath) {
+    ptr = ulCreateConfig();
+    if (!cachePath.isNull) this.cachePath = cachePath.get;
+  }
   ~this() {
-    assert(ptr);
-    ulDestroyConfig(ptr);
+    if (ptr !is null) ulDestroyConfig(ptr);
     ptr = null;
   }
 
   /// A writable OS file path to store persistent Session data in.
-  static void setCachePath(string cachePath) {
-    ulConfigSetCachePath(config.ptr, cachePath.toUlString.ptr);
+  void cachePath(string cachePath) {
+    ulConfigSetCachePath(this, cachePath.toUlString.ptr);
   }
 
   /// The relative path to the resources folder (loaded via the FileSystem API).
-  static void setResourcePathPrefix(string resourcePathPrefix) {
-    ulConfigSetResourcePathPrefix(config.ptr, resourcePathPrefix.toUlString.ptr);
+  void resourcePathPrefix(string resourcePathPrefix) {
+    ulConfigSetResourcePathPrefix(this, resourcePathPrefix.toUlString.ptr);
   }
 
   /// The winding order for front-facing triangles.
-  static void setFaceWinding(FaceWinding winding) {
-    ulConfigSetFaceWinding(config.ptr, winding);
+  void faceWinding(FaceWinding winding) {
+    ulConfigSetFaceWinding(this, winding);
   }
 
   /// The hinting algorithm to use when rendering fonts.
-  static void setFontHinting(FontHinting fontHinting) {
-    ulConfigSetFontHinting(config.ptr, fontHinting);
+  void fontHinting(FontHinting fontHinting) {
+    ulConfigSetFontHinting(this, fontHinting);
   }
 
   /// The gamma to use when compositing font glyphs, change this value to adjust contrast (Adobe and Apple prefer 1.8, others may prefer 2.2).
-  static void setFontGamma(double fontGamma) {
-    ulConfigSetFontGamma(config.ptr, fontGamma);
+  void fontGamma(double fontGamma) {
+    ulConfigSetFontGamma(this, fontGamma);
   }
 
   /// Global user-defined CSS string (included before any CSS on the page).
-  static void setUserStylesheet(string cssString) {
-    ulConfigSetUserStylesheet(config.ptr, cssString.toUlString.ptr);
+  void userStylesheet(string cssString) {
+    ulConfigSetUserStylesheet(this, cssString.toUlString.ptr);
   }
 
   /// Whether or not to continuously repaint any Views, regardless if they are dirty.
-  static void setForceRepaint(bool enabled) {
-    ulConfigSetForceRepaint(config.ptr, enabled);
+  void forceRepaint(bool enabled) {
+    ulConfigSetForceRepaint(this, enabled);
   }
 
   /// The delay (in seconds) between every tick of a CSS animation.
-  static void setAnimationTimerDelay(double delay) {
-    ulConfigSetAnimationTimerDelay(config.ptr, delay);
+  void animationTimerDelay(double delay) {
+    ulConfigSetAnimationTimerDelay(this, delay);
   }
 
   /// The delay (in seconds) between every tick of a smooth scroll animation.
-  static void setScrollTimerDelay(double delay) {
-    ulConfigSetScrollTimerDelay(config.ptr, delay);
+  void scrollTimerDelay(double delay) {
+    ulConfigSetScrollTimerDelay(this, delay);
   }
 
   /// The delay (in seconds) between every call to the recycler.
-  static void setRecycleDelay(double delay) {
-    ulConfigSetRecycleDelay(config.ptr, delay);
+  void recycleDelay(double delay) {
+    ulConfigSetRecycleDelay(this, delay);
   }
 
   /// The size of WebCore's memory cache in bytes.
-  static void setMemoryCacheSize(uint size) {
-    ulConfigSetMemoryCacheSize(config.ptr, size);
+  void memoryCacheSize(uint size) {
+    ulConfigSetMemoryCacheSize(this, size);
   }
 
   /// The number of pages to keep in the cache.
-  static void setPageCacheSize(uint size) {
-    ulConfigSetPageCacheSize(config.ptr, size);
+  void pageCacheSize(uint size) {
+    ulConfigSetPageCacheSize(this, size);
   }
 
   /// The system's physical RAM size in bytes.
-  static void setOverrideRAMSize(uint size) {
-    ulConfigSetOverrideRAMSize(config.ptr, size);
+  void overrideRAMSize(uint size) {
+    ulConfigSetOverrideRAMSize(this, size);
   }
 
   /// The minimum size of large VM heaps in JavaScriptCore.
-  static void setMinLargeHeapSize(uint size) {
-    ulConfigSetMinLargeHeapSize(config.ptr, size);
+  void minLargeHeapSize(uint size) {
+    ulConfigSetMinLargeHeapSize(this, size);
   }
 
   /// The minimum size of small VM heaps in JavaScriptCore.
-  static void setMinSmallHeapSize(uint size) {
-    ulConfigSetMinSmallHeapSize(config.ptr, size);
+  void minSmallHeapSize(uint size) {
+    ulConfigSetMinSmallHeapSize(this, size);
   }
 
   /// The number of threads to use in the Renderer (for parallel painting on the CPU, etc.).
-  static void setNumRendererThreads(uint numRendererThreads) {
-    ulConfigSetNumRendererThreads(config.ptr, numRendererThreads);
+  void numRendererThreads(uint numRendererThreads) {
+    ulConfigSetNumRendererThreads(this, numRendererThreads);
   }
 
   /// The max amount of time (in seconds) to allow repeating timers to run during each call to `Renderer.update`.
-  static void setMaxUpdateTime(double maxUpdateTime) {
-    ulConfigSetMaxUpdateTime(config.ptr, maxUpdateTime);
+  void maxUpdateTime(double maxUpdateTime) {
+    ulConfigSetMaxUpdateTime(this, maxUpdateTime);
   }
 
   /// The alignment (in bytes) of the BitmapSurface when using the CPU renderer.
-  static void setBitmapAlignment(uint bitmapAlignment) {
-    ulConfigSetBitmapAlignment(config.ptr, bitmapAlignment);
+  void bitmapAlignment(uint bitmapAlignment) {
+    ulConfigSetBitmapAlignment(this, bitmapAlignment);
   }
 }
 
@@ -204,14 +207,12 @@ class Renderer {
   ///
   ULRenderer ptr;
 
-  /// Create a new renderer given Ultralight's default configuration.
-  this() {
-    this(config);
-  }
   /// Create a new renderer.
-  this(Config config) {
-    assert(config.ptr);
-    ptr = ulCreateRenderer(config.ptr);
+  ///
+  /// Uses the current value of `Platform.config` to configure the renderer.
+  this() {
+    assert(Platform.config.ptr);
+    ptr = ulCreateRenderer(Platform.config);
   }
   ~this() {
     ulDestroyRenderer(ptr);
@@ -285,6 +286,25 @@ class Renderer {
 /// Global platform singleton, manages user-defined platform handlers.
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___platform_8h.html
 class Platform {
+  /// Global config singleton, manages user-defined configuration.
+  private static Config cfg = null;
+
+  // TODO: Use `standardpaths` package for OS-independent storeage paths
+
+  /// The `Config`.
+  static Config config() {
+    return this.cfg;
+  }
+  /// ditto
+  static void config(Config config) {
+    this.cfg = config;
+  }
+
+  /// Create config with default values.
+  static Config defaultConfig() {
+    return new Config(ulCreateConfig());
+  }
+
   ///
   static void enablePlatformFontLoader() {
     ulEnablePlatformFontLoader();
