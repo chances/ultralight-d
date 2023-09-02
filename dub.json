@@ -9,6 +9,9 @@
   "targetName": "ultralight-d",
   "targetPath": "bin",
   "targetType": "staticLibrary",
+  "subPackages": [
+    "examples/png"
+  ],
   "preBuildCommands-posix": ["make ultralight"],
   "preBuildCommands-windows": [
     "if not exist node_modules npm i",
@@ -48,7 +51,6 @@
     {
       "name": "unittest",
       "postBuildCommands-linux": [
-        "which patchelf",
         "patchelf --set-rpath '$$ORIGIN/ultralight/.' bin/ultralight-test-unittest"
       ],
       "postBuildCommands-osx": [

@@ -3,6 +3,35 @@ module ultralight.enums;
 
 import ultralight.bindings;
 
+///
+enum MessageSource {
+  xml = kMessageSource_XML,
+  js = kMessageSource_JS,
+  network = kMessageSource_Network,
+  consoleApi = kMessageSource_ConsoleAPI,
+  storage = kMessageSource_Storage,
+  appCache = kMessageSource_AppCache,
+  rendering = kMessageSource_Rendering,
+  css = kMessageSource_CSS,
+  security = kMessageSource_Security,
+  contentBlocker = kMessageSource_ContentBlocker,
+  other = kMessageSource_Other
+}
+
+///
+enum MessageLevel {
+  ///
+  log = kMessageLevel_Log,
+  ///
+  warning = kMessageLevel_Warning,
+  ///
+  error = kMessageLevel_Error,
+  ///
+  debug_ = kMessageLevel_Debug,
+  ///
+  info = kMessageLevel_Info
+}
+
 /// See_Also: https://ultralig.ht/api/c/1_3_0/_c_a_p_i___defines_8h.html#af81b997faeeb522a0cb41000e0c3f89d
 enum BitmapFormat {
   ///

@@ -1,0 +1,23 @@
+{
+  "name": "png",
+  "description": "Render to PNG example for ultralight",
+  "license": "MIT",
+  "copyright": "Copyright © 2023, Chance Snow",
+  "authors": [
+  	"Chance Snow <git@chancesnow.me>"
+  ],
+  "targetType": "executable",
+  "targetPath": "../../bin",
+  "dependencies": {
+    "ultralight": {
+      "path": "../../"
+    }
+  },
+  "copyFiles": ["views/*"],
+  "postBuildCommands-linux": [
+    "patchelf --set-rpath '$$ORIGIN/ultralight/.' ../../bin/ultralight_png"
+  ],
+  "postBuildCommands-osx": [
+    "install_name_tool -add_rpath @executable_path/ultralight ../../bin/ultralight_png"
+  ]
+}
